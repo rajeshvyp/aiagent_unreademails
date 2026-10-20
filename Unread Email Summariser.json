@@ -1,0 +1,196 @@
+{
+  "name": "Unread Email Summariser",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 5,
+        "filters": {
+          "readStatus": "unread"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -928,
+        -208
+      ],
+      "id": "cb3dd216-8eb5-40b4-a186-f31ba3c35eb2",
+      "name": "Get many messages",
+      "webhookId": "8d6e0ff2-6cf5-41b8-9ae4-4dc51f9e03f4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "MQIkRpeljbqtJAGA",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1104,
+        -208
+      ],
+      "id": "f0503824-a4a6-413e-b18d-5e5effe62ed0",
+      "name": "Manual Trigger"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write ONE line (20 words maximum) describing this email. No greeting, no heading, no extra text.\nFrom: {{ $json.From }}\nSubject:{{ $json.Subject }}\nPreview: {{ $json.snippet }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -736,
+        -208
+      ],
+      "id": "1be5152b-ebe8-487c-9fa5-0f746d941687",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -736,
+        -16
+      ],
+      "id": "923e05ab-7c8d-4c32-aba4-146b1564f593",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "O621DtkPrfIwx5fF",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "output"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -208
+      ],
+      "id": "8453a1ca-fdab-420f-a448-14de60de5ef4",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "sendTo": "aiexplorer200@gmail.com",
+        "subject": "Your 5 unread emails",
+        "emailType": "text",
+        "message": "={{ $json.output.join('\\n\\n') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -176,
+        -208
+      ],
+      "id": "6a2fd928-4fbf-46f4-a5c3-edba7c6d80ea",
+      "name": "Send a message",
+      "webhookId": "e26eedf8-8afd-4015-9ff9-4363428def14",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "MQIkRpeljbqtJAGA",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "532e4dd1-4c9f-4516-ab64-b6c67933db73",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3b1bd35a1537f7f3aa15d76f92d0c30ae60840374f9c0cdb745c0d240f056e9d"
+  },
+  "nodeGroups": [],
+  "id": "px0Ze4zyzorEsKhU",
+  "tags": []
+}
